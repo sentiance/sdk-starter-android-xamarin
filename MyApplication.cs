@@ -9,9 +9,9 @@ using Android.Support.V4.App;
 using Com.Sentiance.Sdk;
 using Android.Support.V4.Content;
 
-namespace Com.Sentiance.Sdkstarter.Droid
+namespace SDKStarter
 {
-	[Application] 
+	[Application]
 	public class MyApplication : Application, IAuthenticationListener
 	{
 
@@ -19,40 +19,41 @@ namespace Com.Sentiance.Sdkstarter.Droid
 		const string APP_ID = "";
 		const string APP_SECRET = "";
 
-		public MyApplication (IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base (javaReference, transfer)
+		public MyApplication(IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base(javaReference, transfer)
 		{
 		}
-		
 
-		public MyApplication ()
+
+		public MyApplication()
 		{
 		}
 
 		#region public methods
-		public override void OnCreate ()
+		public override void OnCreate()
 		{
-			base.OnCreate ();
-			initializeSentianceSdk ();
+			base.OnCreate();
+			initializeSentianceSdk();
 		}
 
-		public void OnAuthenticationFailed (string p0)
+		public void OnAuthenticationFailed(string p0)
 		{
 			// Here you should wait, inform the user to ensure an internet connection and retry initializeSentianceSdk afterwards
-			Console.WriteLine("SDKStarter - Error launching Sentiance SDK: "+p0);
+			Console.WriteLine("SDKStarter - Error launching Sentiance SDK: " + p0);
 
 			// Some SDK Starter specific help
-			if(p0.Contains("Bad Request")) {
+			if (p0.Contains("Bad Request"))
+			{
 				Console.WriteLine("SDKStarter - You should create a developer account on https://audience.sentiance.com/developers and afterwards register a Sentiance application on https://audience.sentiance.com/apps\n" +
 					"This will give you an application ID and secret which you can use to replace YOUR_APP_ID and YOUR_APP_SECRET in AppDelegate.m");
 			}
 		}
 
-		public void OnAuthenticationSucceeded ()
+		public void OnAuthenticationSucceeded()
 		{
 			// Called when the SDK was able to create a platform user
-			Console.WriteLine("SDKStarter - Sentiance SDK started, version: "+Sdk.Sdk.GetInstance(this).Version);
-			Console.WriteLine ("SDKStarter - Sentiance platform user id for this install: " + Sdk.Sdk.GetInstance (this).User ().Id);
-			Console.WriteLine("SDKStarter - Authorization token that can be used to query the HTTP API: Bearer "+Sdk.Sdk.GetInstance(this).User().AccessToken);
+			Console.WriteLine("SDKStarter - Sentiance SDK started, version: " + Sdk.GetInstance(this).Version);
+			Console.WriteLine("SDKStarter - Sentiance platform user id for this install: " + Sdk.GetInstance(this).User().Id);
+			Console.WriteLine("SDKStarter - Authorization token that can be used to query the HTTP API: Bearer " + Sdk.GetInstance(this).User().AccessToken);
 
 			LocalBroadcastManager.GetInstance(ApplicationContext).SendBroadcast(new Intent(ACTION_SDK_AUTHENTICATION_SUCCESS));
 		}
@@ -60,7 +61,8 @@ namespace Com.Sentiance.Sdkstarter.Droid
 		#endregion
 
 		#region private methods
-		void initializeSentianceSdk() {
+		void initializeSentianceSdk()
+		{
 			// SDK configuration
 			SdkConfig config = new SdkConfig(new SdkConfig.AppCredentials(
 				APP_ID,
@@ -68,7 +70,7 @@ namespace Com.Sentiance.Sdkstarter.Droid
 			));
 
 			// Let the SDK start the service foregrounded by showing a notification. This discourages Android from killing the process.
-			Intent intent = new Intent(this, typeof(MainActivity)).SetFlags (ActivityFlags.ClearTop);
+			Intent intent = new Intent(this, typeof(MainActivity)).SetFlags(ActivityFlags.ClearTop);
 			PendingIntent pendingIntent = PendingIntent.GetActivity(this, 0, intent, 0);
 			Notification notification = new NotificationCompat.Builder(this)
 				.SetContentTitle(GetString(Resource.String.app_name) + " is running")
@@ -79,15 +81,15 @@ namespace Com.Sentiance.Sdkstarter.Droid
 				.SetPriority(NotificationCompat.PriorityMin)
 				.Build();
 
-			config.EnableStartForegrounded (notification);
+			config.EnableStartForegrounded(notification);
 
 
 			// Register this instance as authentication listener
-			Sdk.Sdk.GetInstance(this).SetAuthenticationListener(this);
+			Sdk.GetInstance(this).SetAuthenticationListener(this);
 
 			// Initialize and start the Sentiance SDK module
 			// The first time an app installs on a device, the SDK requires internet to create a Sentiance platform userid
-			Sdk.Sdk.GetInstance (this).Init (config);
+			Sdk.GetInstance(this).Init(config);
 		}
 		#endregion
 	}

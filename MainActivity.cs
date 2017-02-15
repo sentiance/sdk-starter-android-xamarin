@@ -11,9 +11,9 @@ using Android.Content.PM;
 using System.Collections.Generic;
 using Com.Sentiance.Sdk;
 
-namespace Com.Sentiance.Sdkstarter.Droid
+namespace SDKStarter
 {
-	[Activity (Label = "@string/app_name", MainLauncher = true, Icon = "@mipmap/ic_launcher")]
+	[Activity(Label = "@string/app_name", MainLauncher = true, Icon = "@mipmap/ic_launcher")]
 	public class MainActivity : AppCompatActivity
 	{
 		ListView statusList;
@@ -21,39 +21,41 @@ namespace Com.Sentiance.Sdkstarter.Droid
 		IRunnable refreshStatusRunnable;
 		Handler handler = new Handler();
 
-		public MainActivity (IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base (javaReference, transfer)
+		public MainActivity(IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base(javaReference, transfer)
 		{
 		}
-		
 
-		public MainActivity ()
+
+		public MainActivity()
 		{
 		}
-		
+
 
 		#region protected methods
-		protected override void OnCreate (Bundle savedInstanceState)
+		protected override void OnCreate(Bundle savedInstanceState)
 		{
-			base.OnCreate (savedInstanceState);
+			base.OnCreate(savedInstanceState);
 
 			// Set our view from the "main" layout resource
-			if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted) {
+			if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted)
+			{
 				// We need to ask the user to grant permission. We've offloaded that to a different activity for clarity.
 				StartActivity(new Intent(this, typeof(PermissionActivity)));
 			}
 
 			SetContentView(Resource.Layout.activity_main);
 
-			statusList = (ListView) FindViewById(Resource.Id.statusList);
+			statusList = (ListView)FindViewById(Resource.Id.statusList);
 		}
 
-		protected override void OnResume ()
+		protected override void OnResume()
 		{
-			base.OnResume ();
+			base.OnResume();
 
-			if (authenticationBroadcastReciever == null) {
-				authenticationBroadcastReciever = new LocalBroadcastReceiver (refreshStatus);
-				refreshStatusRunnable = new LocalRunnable (refreshStatus, handler);
+			if (authenticationBroadcastReciever == null)
+			{
+				authenticationBroadcastReciever = new LocalBroadcastReceiver(refreshStatus);
+				refreshStatusRunnable = new LocalRunnable(refreshStatus, handler);
 			}
 
 			// Our MyApplication broadcasts when the SDK authentication was successful
@@ -65,12 +67,12 @@ namespace Com.Sentiance.Sdkstarter.Droid
 			refreshStatus();
 		}
 
-		protected override void OnPause ()
+		protected override void OnPause()
 		{
-			base.OnPause ();
+			base.OnPause();
 
 			LocalBroadcastManager.GetInstance(ApplicationContext).UnregisterReceiver(authenticationBroadcastReciever);
-			handler.RemoveCallbacks (refreshStatus);
+			handler.RemoveCallbacks(refreshStatus);
 		}
 		#endregion
 
@@ -78,23 +80,26 @@ namespace Com.Sentiance.Sdkstarter.Droid
 		void refreshStatus()
 		{
 			List<string> statusItems = new List<string>();
-			statusItems.Add("SDK flavor: " + Sdk.Sdk.GetInstance(ApplicationContext).Flavor);
-			statusItems.Add("SDK version: " +Sdk.Sdk.GetInstance(ApplicationContext).Version);
+			statusItems.Add("SDK flavor: " + Sdk.GetInstance(ApplicationContext).Flavor);
+			statusItems.Add("SDK version: " + Sdk.GetInstance(ApplicationContext).Version);
 
 			// On Android, the user id is a re.ource url, using format https://api.sentiance.com/users/USER_ID, you can replace the part to obtain the short URL code:
-			var userId = Sdk.Sdk.GetInstance(ApplicationContext).User ().Id;
-			if (userId.IsPresent) {
-				
-				statusItems.Add("User ID: " + userId.Get ().ToString ().Replace ("https://api.sentiance.com/users/", ""));
-			} else {
+			var userId = Sdk.GetInstance(ApplicationContext).User().Id;
+			if (userId.IsPresent)
+			{
+				statusItems.Add("User ID: " + userId.Get().ToString().Replace("https://api.sentiance.com/users/", ""));
+			}
+			else
+			{
 				statusItems.Add("User ID: N/A");
 			}
 
 			// You can use the status message to obtain more information
-			StatusMessage statusMessage = Sdk.Sdk.GetInstance(ApplicationContext).StatusMessage;
-			statusItems.Add("Mode: " + statusMessage.Mode.Name ());
+			StatusMessage statusMessage = Sdk.GetInstance(ApplicationContext).StatusMessage;
+			statusItems.Add("Mode: " + statusMessage.Mode.Name());
 
-			foreach(SdkIssue issue in statusMessage.Issues) {
+			foreach (SdkIssue issue in statusMessage.Issues)
+			{
 				statusItems.Add("Issue: " + issue.Type.Name());
 			}
 
@@ -102,11 +107,11 @@ namespace Com.Sentiance.Sdkstarter.Droid
 			statusItems.Add("Mobile data: " + statusMessage.MobileQuotaUsed + " / " + statusMessage.MobileQuotaLimit);
 			statusItems.Add("Disk: " + statusMessage.DiskQuotaUsed + " / " + statusMessage.DiskQuotaLimit);
 
-			DateTime dtDateTime = new DateTime(1970,1,1,0,0,0,0,DateTimeKind.Utc);
-			dtDateTime = dtDateTime.AddSeconds( statusMessage.WifiLastSeenTimestamp/1000 ).ToLocalTime();
-			statusItems.Add("Wi-Fi last seen: " + dtDateTime.ToString ("yyyy-MM-dd HH:mm:ss"));
+			DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+			dtDateTime = dtDateTime.AddSeconds(statusMessage.WifiLastSeenTimestamp / 1000).ToLocalTime();
+			statusItems.Add("Wi-Fi last seen: " + dtDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
-			statusList.Adapter =  new ArrayAdapter(this, Resource.Layout.list_item_status, Resource.Id.textView, statusItems);
+			statusList.Adapter = new ArrayAdapter(this, Resource.Layout.list_item_status, Resource.Id.textView, statusItems);
 		}
 		#endregion
 
@@ -115,49 +120,49 @@ namespace Com.Sentiance.Sdkstarter.Droid
 		{
 			Action ReceiveAction;
 
-			public LocalBroadcastReceiver (IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base (javaReference, transfer)
+			public LocalBroadcastReceiver(IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base(javaReference, transfer)
 			{
 			}
 
-			public LocalBroadcastReceiver (Action receiveAction)
+			public LocalBroadcastReceiver(Action receiveAction)
 			{
 				this.ReceiveAction = receiveAction;
 			}
 
-			public override void OnReceive (Context context, Intent intent)
+			public override void OnReceive(Context context, Intent intent)
 			{
-				ReceiveAction ();
+				ReceiveAction();
 			}
 		}
 
-		internal class LocalRunnable : Java.Lang.Object, IRunnable 
+		internal class LocalRunnable : Java.Lang.Object, IRunnable
 		{
 			const long STATUS_REFRESH_INTERVAL_MILLIS = 5000;
 
 			Action RunAction;
 			Handler RunHandler;
 
-			public LocalRunnable (IntPtr handle, Android.Runtime.JniHandleOwnership transfer) : base (handle, transfer)
+			public LocalRunnable(IntPtr handle, Android.Runtime.JniHandleOwnership transfer) : base(handle, transfer)
 			{
 			}
-			
 
-			public LocalRunnable (Action runAction, Handler runHandler)
+
+			public LocalRunnable(Action runAction, Handler runHandler)
 			{
 				this.RunAction = runAction;
 				this.RunHandler = runHandler;
 			}
 
-			public void Run ()
+			public void Run()
 			{
-				RunAction ();
-				RunHandler.PostDelayed (this, STATUS_REFRESH_INTERVAL_MILLIS);
+				RunAction();
+				RunHandler.PostDelayed(this, STATUS_REFRESH_INTERVAL_MILLIS);
 			}
 
-			protected override void Dispose (bool disposing)
+			protected override void Dispose(bool disposing)
 			{
 				RunAction = null;
-				base.Dispose (disposing);
+				base.Dispose(disposing);
 			}
 		}
 		#endregion
