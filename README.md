@@ -1,5 +1,5 @@
 # Sentiance SDK Starter application for Xamarin
-A simple single-view application that uses the Sentiance SDK and allows the user to manually control when detections occur.
+A simple single-view application that uses the Sentiance SDK.
 
 ## To run this project:
 1. Clone this repository and `cd` into it.
@@ -8,8 +8,9 @@ A simple single-view application that uses the Sentiance SDK and allows the user
 4. Install dependencies with `nuget install packages.config -o packages`.
 5. [Download the Sentiance Android Xamarin SDK](https://sentiance-sdk.s3.amazonaws.com/android/xamarin/sentiance-android-sdk-1.1.2.dll) and place it in the `Libs` folder.
 6. Open the `.sln` file in Xamarin Studio.
-5. In `MyApplication.cs`: fill in the `APP_ID` and `APP_SECRET` variables with the credentials from the application you added in step 3.
-6. Using Xamarin Studio, you can now build and run the application on your device.
+7. Make sure the DLL file is correctly added to the References.
+8. In `MyApplication.cs`: fill in the `APP_ID` and `APP_SECRET` variables with the credentials from the application you added in step 3.
+9. Using Xamarin Studio, you can now build and run the application on your device.
 
 
 ## More info
