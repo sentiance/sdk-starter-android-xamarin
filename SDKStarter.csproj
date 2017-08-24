@@ -75,8 +75,8 @@
     <Reference Include="Xamarin.GooglePlayServices.Location">
       <HintPath>packages\Xamarin.GooglePlayServices.Location.29.0.0.2\lib\MonoAndroid41\Xamarin.GooglePlayServices.Location.dll</HintPath>
     </Reference>
-    <Reference Include="sentiance-android-sdk-1.1.2">
-      <HintPath>Libs\sentiance-android-sdk-1.1.2.dll</HintPath>
+    <Reference Include="sentiance-android-sdk-3.8.0.dll">
+      <HintPath>Libs\sentiance-android-sdk-3.8.0.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
