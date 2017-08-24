@@ -10,6 +10,7 @@ using Java.Lang;
 using Android.Content.PM;
 using System.Collections.Generic;
 using Com.Sentiance.Sdk;
+using Android.Text.Format;
 
 namespace SDKStarter
 {
@@ -17,9 +18,7 @@ namespace SDKStarter
 	public class MainActivity : AppCompatActivity
 	{
 		ListView statusList;
-		BroadcastReceiver authenticationBroadcastReciever;
-		IRunnable refreshStatusRunnable;
-		Handler handler = new Handler();
+		BroadcastReceiver statusUpdateReceiver;
 
 		public MainActivity(IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base(javaReference, transfer)
 		{
@@ -31,7 +30,6 @@ namespace SDKStarter
 		}
 
 
-		#region protected methods
 		protected override void OnCreate(Bundle savedInstanceState)
 		{
 			base.OnCreate(savedInstanceState);
@@ -52,17 +50,14 @@ namespace SDKStarter
 		{
 			base.OnResume();
 
-			if (authenticationBroadcastReciever == null)
+			if (statusUpdateReceiver == null)
 			{
-				authenticationBroadcastReciever = new LocalBroadcastReceiver(refreshStatus);
-				refreshStatusRunnable = new LocalRunnable(refreshStatus, handler);
+				statusUpdateReceiver = new LocalBroadcastReceiver(refreshStatus);
+
 			}
 
 			// Our MyApplication broadcasts when the SDK authentication was successful
-			LocalBroadcastManager.GetInstance(ApplicationContext).RegisterReceiver(authenticationBroadcastReciever, new IntentFilter(MyApplication.ACTION_SDK_AUTHENTICATION_SUCCESS));
-
-			// Periodically refresh the status UI
-			handler.Post(refreshStatusRunnable);
+			LocalBroadcastManager.GetInstance(ApplicationContext).RegisterReceiver(statusUpdateReceiver, new IntentFilter(MyApplication.ACTION_SENTIANCE_STATUS_UPDATE));
 
 			refreshStatus();
 		}
@@ -70,52 +65,52 @@ namespace SDKStarter
 		protected override void OnPause()
 		{
 			base.OnPause();
-
-			LocalBroadcastManager.GetInstance(ApplicationContext).UnregisterReceiver(authenticationBroadcastReciever);
-			handler.RemoveCallbacks(refreshStatus);
+			LocalBroadcastManager.GetInstance(ApplicationContext).UnregisterReceiver(statusUpdateReceiver);
 		}
-		#endregion
 
-		#region private methods
-		void refreshStatus()
+		private void refreshStatus()
 		{
 			List<string> statusItems = new List<string>();
-			statusItems.Add("SDK flavor: " + Sdk.GetInstance(ApplicationContext).Flavor);
-			statusItems.Add("SDK version: " + Sdk.GetInstance(ApplicationContext).Version);
 
-			// On Android, the user id is a re.ource url, using format https://api.sentiance.com/users/USER_ID, you can replace the part to obtain the short URL code:
-			var userId = Sdk.GetInstance(ApplicationContext).User().Id;
-			if (userId.IsPresent)
+			if (Sentiance.GetInstance(this).IsInitialized)
 			{
-				statusItems.Add("User ID: " + userId.Get().ToString().Replace("https://api.sentiance.com/users/", ""));
+				statusItems.Add("SDK version: " + Sentiance.GetInstance(ApplicationContext).Version);
+				statusItems.Add("User ID: " + Sentiance.GetInstance(ApplicationContext).UserId);
+
+				// You can use the status message to obtain more information
+				SdkStatus sdkStatus = Sentiance.GetInstance(ApplicationContext).SdkStatus;
+
+				statusItems.Add("Start status: " + sdkStatus.SdkStartStatus.Name());
+				statusItems.Add("Can detect: " + sdkStatus.CanDetect);
+				statusItems.Add("Remote enabled: " + sdkStatus.IsRemoteEnabled);
+				statusItems.Add("Location perm granted: " + sdkStatus.IsLocationPermGranted);
+				statusItems.Add("Location setting: " + sdkStatus.AndroidLocationSetting);
+				
+				statusItems.Add(formatQuota("Wi-Fi", sdkStatus.WifiQuotaStatus, Sentiance.GetInstance(this).WiFiQuotaUsage, Sentiance.GetInstance(this).WiFiQuotaLimit));
+				statusItems.Add(formatQuota("Mobile data", sdkStatus.WifiQuotaStatus, Sentiance.GetInstance(this).MobileQuotaUsage, Sentiance.GetInstance(this).MobileQuotaLimit));
+				statusItems.Add(formatQuota("Disk", sdkStatus.WifiQuotaStatus, Sentiance.GetInstance(this).DiskQuotaUsage, Sentiance.GetInstance(this).DiskQuotaLimit));
+
+				DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+				dateTime = dateTime.AddSeconds(Sentiance.GetInstance(this).WiFiLastSeenTimestamp / 1000).ToLocalTime();
+				statusItems.Add("Wi-Fi last seen: " + dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
 			}
 			else
 			{
-				statusItems.Add("User ID: N/A");
+				statusItems.Add("SDK not initialized");
 			}
-
-			// You can use the status message to obtain more information
-			StatusMessage statusMessage = Sdk.GetInstance(ApplicationContext).StatusMessage;
-			statusItems.Add("Mode: " + statusMessage.Mode.Name());
-
-			foreach (SdkIssue issue in statusMessage.Issues)
-			{
-				statusItems.Add("Issue: " + issue.Type.Name());
-			}
-
-			statusItems.Add("Wi-Fi data: " + statusMessage.WifiQuotaUsed + " / " + statusMessage.WifiQuotaLimit);
-			statusItems.Add("Mobile data: " + statusMessage.MobileQuotaUsed + " / " + statusMessage.MobileQuotaLimit);
-			statusItems.Add("Disk: " + statusMessage.DiskQuotaUsed + " / " + statusMessage.DiskQuotaLimit);
-
-			DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-			dtDateTime = dtDateTime.AddSeconds(statusMessage.WifiLastSeenTimestamp / 1000).ToLocalTime();
-			statusItems.Add("Wi-Fi last seen: " + dtDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
 			statusList.Adapter = new ArrayAdapter(this, Resource.Layout.list_item_status, Resource.Id.textView, statusItems);
 		}
-		#endregion
 
-		#region internal class
+		private string formatQuota(string name, SdkStatus.QuotaStatus status, long bytesUsed, long bytesLimit)
+		{
+			return System.String.Format("{0} quota: {1} / {2} ({3})",
+										name,
+										Formatter.FormatShortFileSize(this, bytesUsed),
+										Formatter.FormatShortFileSize(this, bytesLimit),
+			                            status);
+		}
+
 		internal class LocalBroadcastReceiver : BroadcastReceiver
 		{
 			Action ReceiveAction;
@@ -134,38 +129,6 @@ namespace SDKStarter
 				ReceiveAction();
 			}
 		}
-
-		internal class LocalRunnable : Java.Lang.Object, IRunnable
-		{
-			const long STATUS_REFRESH_INTERVAL_MILLIS = 5000;
-
-			Action RunAction;
-			Handler RunHandler;
-
-			public LocalRunnable(IntPtr handle, Android.Runtime.JniHandleOwnership transfer) : base(handle, transfer)
-			{
-			}
-
-
-			public LocalRunnable(Action runAction, Handler runHandler)
-			{
-				this.RunAction = runAction;
-				this.RunHandler = runHandler;
-			}
-
-			public void Run()
-			{
-				RunAction();
-				RunHandler.PostDelayed(this, STATUS_REFRESH_INTERVAL_MILLIS);
-			}
-
-			protected override void Dispose(bool disposing)
-			{
-				RunAction = null;
-				base.Dispose(disposing);
-			}
-		}
-		#endregion
 	}
 }
 

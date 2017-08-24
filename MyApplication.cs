@@ -8,16 +8,20 @@ using Com.Sentiance.Sdk.Modules.Config;
 using Android.Support.V4.App;
 using Com.Sentiance.Sdk;
 using Android.Support.V4.Content;
+using Android.Util;
 
 namespace SDKStarter
 {
 	[Application]
-	public class MyApplication : Application, IAuthenticationListener
+	public class MyApplication : Application, IOnInitCallback, IOnStartFinishedHandler, IOnSdkStatusUpdateHandler
 	{
 
-		public static string ACTION_SDK_AUTHENTICATION_SUCCESS = "ACTION_SDK_AUTHENTICATION_SUCCESS";
+		public static string ACTION_SENTIANCE_STATUS_UPDATE = "ACTION_SENTIANCE_STATUS_UPDATE";
+
 		const string APP_ID = "";
 		const string APP_SECRET = "";
+
+		const string TAG = "SDKStarter";
 
 		public MyApplication(IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base(javaReference, transfer)
 		{
@@ -28,48 +32,17 @@ namespace SDKStarter
 		{
 		}
 
-		#region public methods
 		public override void OnCreate()
 		{
 			base.OnCreate();
 			initializeSentianceSdk();
 		}
 
-		public void OnAuthenticationFailed(string p0)
-		{
-			// Here you should wait, inform the user to ensure an internet connection and retry initializeSentianceSdk afterwards
-			Console.WriteLine("SDKStarter - Error launching Sentiance SDK: " + p0);
+		private void initializeSentianceSdk()
+		{   
+			// Create a notification that will be used by the SDK to start the service foregrounded.
+			// This discourages Android from killing the process.
 
-			// Some SDK Starter specific help
-			if (p0.Contains("Bad Request"))
-			{
-				Console.WriteLine("SDKStarter - You should create a developer account on https://audience.sentiance.com/developers and afterwards register a Sentiance application on https://audience.sentiance.com/apps\n" +
-					"This will give you an application ID and secret which you can use to replace YOUR_APP_ID and YOUR_APP_SECRET in AppDelegate.m");
-			}
-		}
-
-		public void OnAuthenticationSucceeded()
-		{
-			// Called when the SDK was able to create a platform user
-			Console.WriteLine("SDKStarter - Sentiance SDK started, version: " + Sdk.GetInstance(this).Version);
-			Console.WriteLine("SDKStarter - Sentiance platform user id for this install: " + Sdk.GetInstance(this).User().Id);
-			Console.WriteLine("SDKStarter - Authorization token that can be used to query the HTTP API: Bearer " + Sdk.GetInstance(this).User().AccessToken);
-
-			LocalBroadcastManager.GetInstance(ApplicationContext).SendBroadcast(new Intent(ACTION_SDK_AUTHENTICATION_SUCCESS));
-		}
-
-		#endregion
-
-		#region private methods
-		void initializeSentianceSdk()
-		{
-			// SDK configuration
-			SdkConfig config = new SdkConfig(new SdkConfig.AppCredentials(
-				APP_ID,
-				APP_SECRET
-			));
-
-			// Let the SDK start the service foregrounded by showing a notification. This discourages Android from killing the process.
 			Intent intent = new Intent(this, typeof(MainActivity)).SetFlags(ActivityFlags.ClearTop);
 			PendingIntent pendingIntent = PendingIntent.GetActivity(this, 0, intent, 0);
 			Notification notification = new NotificationCompat.Builder(this)
@@ -81,17 +54,59 @@ namespace SDKStarter
 				.SetPriority(NotificationCompat.PriorityMin)
 				.Build();
 
-			config.EnableStartForegrounded(notification);
+			// Create the config.
+			Com.Sentiance.Sdk.SdkConfig config = new Com.Sentiance.Sdk.SdkConfig.Builder(APP_ID, APP_SECRET)
+				.EnableForeground(notification)
+				.SetOnSdkStatusUpdateHandler(this)
+				.Build();
 
-
-			// Register this instance as authentication listener
-			Sdk.GetInstance(this).SetAuthenticationListener(this);
-
-			// Initialize and start the Sentiance SDK module
-			// The first time an app installs on a device, the SDK requires internet to create a Sentiance platform userid
-			Sdk.GetInstance(this).Init(config);
+			// Initialize the SDK.
+			Sentiance.GetInstance(this).Init(config, this);
 		}
-		#endregion
+
+		public void OnInitSuccess()
+		{
+			printInitSuccessLogStatements();
+			Sentiance.GetInstance(this).Start(this);
+		}
+
+		public void OnInitFailure(OnInitCallbackInitIssue issue)
+		{
+			Log.Info(TAG, "Could not initialize SDK: " + issue);
+		}
+
+		public void OnStartFinished(SdkStatus status)
+		{
+			Log.Info(TAG, "SDK start finished with status: " + status.SdkStartStatus);
+		}
+
+		public void OnSdkStatusUpdate(SdkStatus status)
+		{
+			Log.Info("SDKStarter", "SDK status updated: " + status.ToString());
+			LocalBroadcastManager.GetInstance(this).SendBroadcast(new Intent(ACTION_SENTIANCE_STATUS_UPDATE));
+		}
+
+		private void printInitSuccessLogStatements()
+		{
+			Log.Info(TAG, "Sentiance SDK initialized, version: " + Sentiance.GetInstance(this).Version);
+			Log.Info(TAG, "Sentiance platform user id for this install: " + Sentiance.GetInstance(this).UserId);
+
+			Sentiance.GetInstance(this).GetUserAccessToken(new TokenCallback());
+		}
+
+		internal class TokenCallback : Java.Lang.Object, ITokenResultCallback
+		{
+			
+			public void OnFailure()
+			{
+				Log.Error(TAG, "Couldn't get access token");
+			}
+
+			public void OnSuccess(Token token)
+			{
+				Log.Info(TAG, "Access token to query the HTTP API: Bearer " + token.TokenId);
+			}
+		}
 	}
 }
 
