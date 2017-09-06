@@ -4,11 +4,10 @@
 using System;
 using Android.App;
 using Android.Content;
-using Com.Sentiance.Sdk.Modules.Config;
 using Android.Support.V4.App;
-using Com.Sentiance.Sdk;
 using Android.Support.V4.Content;
 using Android.Util;
+using Com.Sentiance.Sdk;
 
 namespace SDKStarter
 {
@@ -55,7 +54,7 @@ namespace SDKStarter
 				.Build();
 
 			// Create the config.
-			Com.Sentiance.Sdk.SdkConfig config = new Com.Sentiance.Sdk.SdkConfig.Builder(APP_ID, APP_SECRET)
+			SdkConfig config = new SdkConfig.Builder(APP_ID, APP_SECRET)
 				.EnableForeground(notification)
 				.SetOnSdkStatusUpdateHandler(this)
 				.Build();
