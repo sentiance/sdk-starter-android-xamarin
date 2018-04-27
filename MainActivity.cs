@@ -89,10 +89,6 @@ namespace SDKStarter
 				statusItems.Add(formatQuota("Wi-Fi", sdkStatus.WifiQuotaStatus, Sentiance.GetInstance(this).WiFiQuotaUsage, Sentiance.GetInstance(this).WiFiQuotaLimit));
 				statusItems.Add(formatQuota("Mobile data", sdkStatus.MobileQuotaStatus, Sentiance.GetInstance(this).MobileQuotaUsage, Sentiance.GetInstance(this).MobileQuotaLimit));
 				statusItems.Add(formatQuota("Disk", sdkStatus.DiskQuotaStatus, Sentiance.GetInstance(this).DiskQuotaUsage, Sentiance.GetInstance(this).DiskQuotaLimit));
-
-				DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-				dateTime = dateTime.AddSeconds(Sentiance.GetInstance(this).WiFiLastSeenTimestamp / 1000).ToLocalTime();
-				statusItems.Add("Wi-Fi last seen: " + dateTime.ToString("yyyy-MM-dd HH:mm:ss"));
 			}
 			else
 			{

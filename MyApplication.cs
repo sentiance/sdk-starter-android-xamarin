@@ -17,8 +17,8 @@ namespace SDKStarter
 
 		public static string ACTION_SENTIANCE_STATUS_UPDATE = "ACTION_SENTIANCE_STATUS_UPDATE";
 
-		const string APP_ID = "";
-		const string APP_SECRET = "";
+        const string APP_ID = "YOUR_APP_ID";
+        const string APP_SECRET = "YOUR_APP_SECRET";
 
 		const string TAG = "SDKStarter";
 
@@ -39,29 +39,39 @@ namespace SDKStarter
 
 		private void initializeSentianceSdk()
 		{   
-			// Create a notification that will be used by the SDK to start the service foregrounded.
-			// This discourages Android from killing the process.
-
-			Intent intent = new Intent(this, typeof(MainActivity)).SetFlags(ActivityFlags.ClearTop);
-			PendingIntent pendingIntent = PendingIntent.GetActivity(this, 0, intent, 0);
-			Notification notification = new NotificationCompat.Builder(this)
-				.SetContentTitle(GetString(Resource.String.app_name) + " is running")
-				.SetContentText("Touch to open.")
-				.SetShowWhen(false)
-				.SetSmallIcon(Resource.Mipmap.ic_launcher)
-				.SetContentIntent(pendingIntent)
-				.SetPriority(NotificationCompat.PriorityMin)
-				.Build();
-
 			// Create the config.
-			SdkConfig config = new SdkConfig.Builder(APP_ID, APP_SECRET)
-				.EnableForeground(notification)
+            SdkConfig config = new SdkConfig.Builder(APP_ID, APP_SECRET, createNotification())
 				.SetOnSdkStatusUpdateHandler(this)
 				.Build();
 
 			// Initialize the SDK.
 			Sentiance.GetInstance(this).Init(config, this);
 		}
+
+        private Notification createNotification()
+        {
+            // PendingIntent that will start your application's MainActivity
+            Intent intent = new Intent(this, typeof(MainActivity));
+            PendingIntent pendingIntent = PendingIntent.GetActivity(this, 0, intent, 0);
+
+            // On Oreo and above, you must create a notification channel
+            String channelId = "trips";
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O) {
+                NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
+                NotificationChannel channel = new NotificationChannel(channelId, "Trips", NotificationImportance.Min);
+                channel.SetShowBadge(false);
+                notificationManager.CreateNotificationChannel(channel);
+            }
+
+            return new NotificationCompat.Builder(this, channelId)
+                                     .SetContentTitle(GetString(Resource.String.app_name) + " is running")
+                                     .SetContentText("Touch to open.")
+                                     .SetContentIntent(pendingIntent)
+                                     .SetShowWhen(false)
+                                     .SetSmallIcon(Resource.Mipmap.ic_launcher)
+                                     .SetPriority((int)NotificationPriority.Min)
+                                     .Build();
+        }
 
 		public void OnInitSuccess()
 		{
