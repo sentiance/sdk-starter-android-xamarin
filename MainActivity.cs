@@ -72,7 +72,7 @@ namespace SDKStarter
 		{
 			List<string> statusItems = new List<string>();
 
-			if (Sentiance.GetInstance(this).IsInitialized)
+            if (Sentiance.GetInstance(this).InitState == InitState.Initialized)
 			{
 				statusItems.Add("SDK version: " + Sentiance.GetInstance(ApplicationContext).Version);
 				statusItems.Add("User ID: " + Sentiance.GetInstance(ApplicationContext).UserId);
