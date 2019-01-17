@@ -102,8 +102,8 @@
     <Reference Include="Xamarin.Android.Support.v7.AppCompat">
       <HintPath>packages\Xamarin.Android.Support.v7.AppCompat.27.0.2\lib\MonoAndroid81\Xamarin.Android.Support.v7.AppCompat.dll</HintPath>
     </Reference>
-    <Reference Include="sentiance-android-sdk-4.1.15">
-      <HintPath>..\..\Downloads\sentiance-android-sdk-4.1.15.dll</HintPath>
+    <Reference Include="sentiance-android-sdk-4.4.0">
+      <HintPath>..\..\Downloads\sentiance-android-sdk-4.4.0.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
