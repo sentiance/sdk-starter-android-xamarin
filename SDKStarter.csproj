@@ -12,10 +12,9 @@
     <AndroidResgenClass>Resource</AndroidResgenClass>
     <AndroidResgenFile>Resources\Resource.designer.cs</AndroidResgenFile>
     <AndroidApplication>True</AndroidApplication>
-    <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
     <AssemblyName>SDKStarter</AssemblyName>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
-    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v9.0</TargetFrameworkVersion>
     <AndroidTlsProvider></AndroidTlsProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -31,7 +30,6 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -102,8 +100,8 @@
     <Reference Include="Xamarin.Android.Support.v7.AppCompat">
       <HintPath>packages\Xamarin.Android.Support.v7.AppCompat.27.0.2\lib\MonoAndroid81\Xamarin.Android.Support.v7.AppCompat.dll</HintPath>
     </Reference>
-    <Reference Include="sentiance-android-sdk-4.1.15">
-      <HintPath>..\..\Downloads\sentiance-android-sdk-4.1.15.dll</HintPath>
+    <Reference Include="sentiance-android-sdk-4.4.0">
+      <HintPath>..\..\Downloads\sentiance-android-sdk-4.4.0.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

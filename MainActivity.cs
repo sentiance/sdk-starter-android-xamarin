@@ -72,7 +72,7 @@ namespace SDKStarter
 		{
 			List<string> statusItems = new List<string>();
 
-			if (Sentiance.GetInstance(this).IsInitialized)
+            if (Sentiance.GetInstance(this).InitState == InitState.Initialized)
 			{
 				statusItems.Add("SDK version: " + Sentiance.GetInstance(ApplicationContext).Version);
 				statusItems.Add("User ID: " + Sentiance.GetInstance(ApplicationContext).UserId);
@@ -89,6 +89,19 @@ namespace SDKStarter
 				statusItems.Add(formatQuota("Wi-Fi", sdkStatus.WifiQuotaStatus, Sentiance.GetInstance(this).WiFiQuotaUsage, Sentiance.GetInstance(this).WiFiQuotaLimit));
 				statusItems.Add(formatQuota("Mobile data", sdkStatus.MobileQuotaStatus, Sentiance.GetInstance(this).MobileQuotaUsage, Sentiance.GetInstance(this).MobileQuotaLimit));
 				statusItems.Add(formatQuota("Disk", sdkStatus.DiskQuotaStatus, Sentiance.GetInstance(this).DiskQuotaUsage, Sentiance.GetInstance(this).DiskQuotaLimit));
+
+                if (Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.M)
+                {
+                    statusItems.Add("Battery optimization enabled: " + sdkStatus.IsBatteryOptimizationEnabled);
+                }
+                if (Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.Lollipop)
+                {
+                    statusItems.Add("Battery saving enabled: " + sdkStatus.IsBatterySavingEnabled);
+                }
+                if (Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
+                {
+                    statusItems.Add("Background processing restricted: " + sdkStatus.IsBackgroundProcessingRestricted);
+                }
 			}
 			else
 			{
