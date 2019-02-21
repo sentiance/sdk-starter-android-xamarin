@@ -8,6 +8,7 @@ using Android.Support.V4.App;
 using Android.Support.V4.Content;
 using Android.Util;
 using Com.Sentiance.Sdk;
+using Java.Lang;
 
 namespace SDKStarter
 {
@@ -55,10 +56,10 @@ namespace SDKStarter
             PendingIntent pendingIntent = PendingIntent.GetActivity(this, 0, intent, 0);
 
             // On Oreo and above, you must create a notification channel
-            String channelId = "trips";
+            string channelId = "trips";
             if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O) {
                 NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
-                NotificationChannel channel = new NotificationChannel(channelId, "Trips", NotificationImportance.Min);
+                NotificationChannel channel = new NotificationChannel((string)channelId, "Trips", NotificationImportance.Min);
                 channel.SetShowBadge(false);
                 notificationManager.CreateNotificationChannel(channel);
             }
@@ -79,10 +80,14 @@ namespace SDKStarter
 			Sentiance.GetInstance(this).Start(this);
 		}
 
-		public void OnInitFailure(OnInitCallbackInitIssue issue)
+		public void OnInitFailure(OnInitCallbackInitIssue issue, Throwable throwable)
 		{
 			Log.Info(TAG, "Could not initialize SDK: " + issue);
-		}
+            if (throwable != null)
+            {
+                Log.Error(TAG, Log.GetStackTraceString(throwable));
+            }
+        }
 
 		public void OnStartFinished(SdkStatus status)
 		{
@@ -103,7 +108,7 @@ namespace SDKStarter
 			Sentiance.GetInstance(this).GetUserAccessToken(new TokenCallback());
 		}
 
-		internal class TokenCallback : Java.Lang.Object, ITokenResultCallback
+        internal class TokenCallback : Java.Lang.Object, ITokenResultCallback
 		{
 			
 			public void OnFailure()
