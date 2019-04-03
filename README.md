@@ -4,7 +4,7 @@ A simple single-view application that uses the Sentiance SDK.
 ## To run this project:
 1. Clone this repository and `cd` into it.
 2. [Request a developer account from here](https://developers.sentiance.com/).
-3. [Register a Sentiance application here](https://developers.sentiance.com/apps) to obtain an application ID and secret.
+3. [Create a Sentiance application here](https://developers.sentiance.com/apps) to obtain an application ID and secret.
 4. Install dependencies with `nuget install packages.config -o packages`.
 5. [Download the latest Sentiance Android Xamarin SDK](https://betadoc.sentiance.com/sdk/appendix/xamarin) and place it in the `Libs` folder.
 6. Open the `.sln` file in Xamarin Studio.
