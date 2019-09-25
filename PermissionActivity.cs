@@ -8,90 +8,74 @@ using Android.Support.V4.App;
 using Android;
 using Android.App;
 using Android.Content.PM;
+using System.Collections.Generic;
+using Android.Content;
+using AlertDialog = Android.Support.V7.App.AlertDialog;
 
 namespace SDKStarter
 {
-	[Activity]
-	public class PermissionActivity : AppCompatActivity, Android.Content.IDialogInterfaceOnClickListener
-	{
+    [Activity]
+    public class PermissionActivity : AppCompatActivity
+    {
 
-		static int PERMISSION_REQUEST_CODE = 15442;
+        PermissionManager mPermissionManager;
 
-		public PermissionActivity()
-		{
-		}
+        protected override void OnCreate(Bundle savedInstanceState)
+        {
+            base.OnCreate(savedInstanceState);
+            mPermissionManager = new PermissionManager(this);
 
-		public PermissionActivity(IntPtr javaReference, Android.Runtime.JniHandleOwnership transfer) : base(javaReference, transfer)
-		{
-		}
+            List<Permission> permissions = mPermissionManager.GetNotGrantedPermissions();
+            if (permissions.Count > 0)
+            {
+                RequestPermission(permissions[0], false);
+            }
+            else
+            {
+                StartMain();
+            }
+        }
 
-		#region public methods
+        private void RequestPermission(Permission p, Boolean bypassRationale)
+        {
+            if (!bypassRationale && p.ShouldShowRationale(this))
+            {
+                ShowExplanation(p);
+            }
+            else if (!p.IsGranted(this))
+            {
+                ActivityCompat.RequestPermissions(this, p.GetManifestPermissions(), p.GetAskCode());
+            }
+        }
 
-		protected override void OnCreate(Bundle savedInstanceState)
-		{
-			base.OnCreate(savedInstanceState);
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Android.Content.PM.Permission[] grantResults)
+        {
+            if (mPermissionManager.GetNotGrantedPermissions().Count == 0)
+            {
+                StartMain();
+            }
+            else
+            {
+                // Requesting new permissions from the same activity instance fails for some reason.
+                Finish();
+                StartActivity(new Intent(this, typeof(PermissionActivity)));
+            }
+        }
 
-			if (ActivityCompat.ShouldShowRequestPermissionRationale(this, Manifest.Permission.AccessFineLocation))
-			{
-				showExplanation();
-			}
-			else
-			{
-				requestPermission();
-			}
-		}
+        private void ShowExplanation(Permission p)
+        {
+            new AlertDialog.Builder(this)
+                    .SetTitle(p.GetDialogTitle())
+                    .SetMessage(p.GetDialogMessage())
+                    .SetPositiveButton("OK", (s,e) => { RequestPermission(p, true); })
+                    .Show();
+        }
 
-		public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
-		{
-			if (requestCode == PERMISSION_REQUEST_CODE)
-			{
-				if (grantResults.Length > 0 && grantResults[0] == Permission.Granted)
-				{
-					// Permission granted, proceed
-					proceed();
-				}
-				else if (ActivityCompat.ShouldShowRequestPermissionRationale(this, Manifest.Permission.AccessFineLocation))
-				{
-					// Permission denied, but we should show an explanation
-					showExplanation();
-				}
-				else
-				{
-					// Permission denied, no explanation necessary. We can only proceed, even though the SDK will not actually be able to start detections.
-					proceed();
-				}
-			}
-		}
+        private void StartMain()
+        {
+            Finish();
+            StartActivity(new Intent(this, typeof(MainActivity)));
+        }
+    }
 
-		public void OnClick(Android.Content.IDialogInterface dialog, int which)
-		{
-			requestPermission();
-		}
-		#endregion
-
-		#region private methods
-
-		void showExplanation()
-		{
-			new Android.Support.V7.App.AlertDialog.Builder(this)
-				.SetTitle("Location Permission")
-				.SetMessage("The Sentiance SDK needs access to your location in order to build your profile.")
-				.SetPositiveButton("OK", this)
-				.Show();
-		}
-
-		void requestPermission()
-		{
-			ActivityCompat.RequestPermissions(this, new String[] { Manifest.Permission.AccessFineLocation }, PERMISSION_REQUEST_CODE);
-		}
-
-		void proceed()
-		{
-			Finish();
-		}
-
-		#endregion
-
-	}
 }
-

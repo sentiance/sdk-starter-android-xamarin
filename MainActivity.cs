@@ -34,12 +34,10 @@ namespace SDKStarter
 		{
 			base.OnCreate(savedInstanceState);
 
-			// Set our view from the "main" layout resource
-			if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted)
-			{
-				// We need to ask the user to grant permission. We've offloaded that to a different activity for clarity.
-				StartActivity(new Intent(this, typeof(PermissionActivity)));
-			}
+            if (new PermissionManager(this).GetNotGrantedPermissions().Count > 0)
+            {
+                StartActivity(new Intent(this, typeof(PermissionActivity)));
+            }
 
 			SetContentView(Resource.Layout.activity_main);
 
@@ -83,7 +81,8 @@ namespace SDKStarter
 				statusItems.Add("Start status: " + sdkStatus.SdkStartStatus.Name());
 				statusItems.Add("Can detect: " + sdkStatus.CanDetect);
 				statusItems.Add("Remote enabled: " + sdkStatus.IsRemoteEnabled);
-				statusItems.Add("Location perm granted: " + sdkStatus.IsLocationPermGranted);
+                statusItems.Add("Activity perm granted: " + sdkStatus.IsActivityRecognitionPermGranted);
+                statusItems.Add("Location perm granted: " + sdkStatus.IsLocationPermGranted);
 				statusItems.Add("Location setting: " + sdkStatus.AndroidLocationSetting);
 				
 				statusItems.Add(formatQuota("Wi-Fi", sdkStatus.WifiQuotaStatus, Sentiance.GetInstance(this).WiFiQuotaUsage, Sentiance.GetInstance(this).WiFiQuotaLimit));
